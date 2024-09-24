@@ -7,13 +7,11 @@ from pyspark.sql import functions as F
 
 
 def process_logs(spark, target_date: str):
-    # Параметры
     target_date = datetime.strptime(target_date, "%Y-%m-%d")
     start_date = target_date - timedelta(days=7)
-    logs_dir = "logs"
+    logs_dir = "input"
     output_dir = "output"
 
-    # Сбор логов за 7 предыдущих дней
     all_logs: DataFrame = spark.createDataFrame(
         [], schema="email STRING, action STRING, dt STRING"
     )
@@ -26,7 +24,6 @@ def process_logs(spark, target_date: str):
             daily_logs = spark.read.csv(log_file, header=True)
             all_logs = all_logs.union(daily_logs)
 
-    # Агрегация данных
     aggregated_data = all_logs.groupBy("email").agg(
         F.count(F.when(F.col("action") == "create", True)).alias(
             "create_count"
@@ -40,7 +37,6 @@ def process_logs(spark, target_date: str):
         ),
     )
 
-    # Подготовка выходного файла
     output_file = os.path.join(
         output_dir, target_date.strftime("%Y-%m-%d") + ".csv"
     )
