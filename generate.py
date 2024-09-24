@@ -1,10 +1,7 @@
 """
 python3 generate.py <dir to put files> <%Y-%m-%d date> <days_count> <unique emails count> <events count>
 Ex.
-for macos/linux:
 python3 generate.py input 2024-09-10 30 10 2000
-for win:
-python generate.py input 2024-09-10 30 10 2000
 """
 
 import datetime

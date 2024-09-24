@@ -1,3 +1,9 @@
+"""
+python3 script.py <YYYY-mm-dd>
+Ex.
+python3 script.py 2024-09-28
+"""
+
 import os
 import sys
 from datetime import datetime, timedelta
@@ -25,34 +31,29 @@ def process_logs(spark, target_date: str):
             all_logs = all_logs.union(daily_logs)
 
     aggregated_data = all_logs.groupBy("email").agg(
-        F.count(F.when(F.col("action") == "create", True)).alias(
+        F.count(F.when(F.col("action") == "CREATE", True)).alias(
             "create_count"
         ),
-        F.count(F.when(F.col("action") == "read", True)).alias("read_count"),
-        F.count(F.when(F.col("action") == "update", True)).alias(
+        F.count(F.when(F.col("action") == "READ", True)).alias("read_count"),
+        F.count(F.when(F.col("action") == "UPDATE", True)).alias(
             "update_count"
         ),
-        F.count(F.when(F.col("action") == "delete", True)).alias(
+        F.count(F.when(F.col("action") == "DELETE", True)).alias(
             "delete_count"
         ),
     )
 
-    output_file = os.path.join(
-        output_dir, target_date.strftime("%Y-%m-%d") + ".csv"
-    )
+    output_file = os.path.join(output_dir, target_date.strftime("%Y-%m-%d"))
     aggregated_data.coalesce(1).write.csv(
         output_file, header=True, mode="overwrite"
     )
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <YYYY-mm-dd>")
-    else:
-        spark = SparkSession.builder.appName(
-            "User Actions Aggregation"
-        ).getOrCreate()
-        try:
-            process_logs(spark, sys.argv[1])
-        finally:
-            spark.stop()
+    spark = SparkSession.builder.appName(
+        "User Actions Aggregation"
+    ).getOrCreate()
+    try:
+        process_logs(spark, sys.argv[1])
+    finally:
+        spark.stop()
